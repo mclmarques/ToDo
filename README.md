@@ -1,6 +1,6 @@
 # TODO App 📋
 
-Welcome to the **TODO App**, a simple task management application developed as part of a university assignment for the *Mobile Apps Engineering* course. This app demonstrates the integration of modern Android development practices and tools, making it an excellent resource for developers looking to explore best practices.
+Welcome to the **TODO App**, a simple task management application developed as part of a university assignment for the *Mobile Apps Engineering* course. This app shows the integration of modern Android development practices and tools, making it an excellent resource for developers looking to explore best practices.
 
 ---
 
@@ -21,7 +21,7 @@ Welcome to the **TODO App**, a simple task management application developed as p
 
 ## Why Use This App? 🤔
 
-While it’s designed as a university project, this app includes features that are practical and reusable for developers:
+While it’s designed as a university project, this app includes features that can be handy for new android developers to learn about commonly used tools, like Room or Dagger Hilt:
 - Explore the integration of key Android libraries.
 - Learn how to use modern architectural patterns.
 - Gain insights into building responsive UIs with Jetpack Compose.
@@ -29,3 +29,4 @@ While it’s designed as a university project, this app includes features that a
 ## How to Build and Run 🛠️
 
 1. Just clone the repository on Android Studio (I used Android Studio Ladybug | 2024.2.1 Patch 2)
+
