@@ -28,6 +28,4 @@ While it’s designed as a university project, this app includes features that a
 
 ## How to Build and Run 🛠️
 
-1. Clone the repository (preferebly on Android Studio):
-   ```bash
-   git clone https://github.com/yourusername/todo-app.git 
+1. Just clone the repository on Android Studio (I used Android Studio Ladybug | 2024.2.1 Patch 2)
