@@ -1,5 +1,8 @@
 package com.android.puc.mcl.todo.ui
 
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -11,19 +14,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.*
 import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -33,16 +37,33 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodoListScreen(
-    todos: List<Todo>,
     onAddTodoClick: () -> Unit,
     viewModel: UniversalViewModel,
 ) {
+    val activity = LocalContext.current as? Activity
     val todos = viewModel.todos.collectAsState().value
     val selectionMode = viewModel.selectionMode.value
     val selectedItems = viewModel.selectedItems
+    // Rotation Animation
+    val rotationAngle by animateFloatAsState(
+        targetValue = if (selectionMode) 0f else 180f, // Rotate to 0 for Delete, 180 for Add
+        label = "Rotation Animation"
+    )
+
+    BackHandler {
+        if (selectionMode) {
+            viewModel.toggleSelectionMode()
+        }
+        else {
+            activity?.finish()
+        }
+    }
+
+
 
     Scaffold(
         floatingActionButton = {
@@ -58,7 +79,11 @@ fun TodoListScreen(
             ) {
                 Icon(
                     imageVector = if (selectionMode) Icons.Default.Delete else Icons.Default.Add,
-                    contentDescription = if (selectionMode) "Delete Selected" else "Add Todo"
+                    contentDescription = if (selectionMode) "Delete Selected" else "Add Todo",
+                    modifier = Modifier.graphicsLayer(
+                        rotationZ = rotationAngle
+                    ),
+                    tint = Color.Black
                 )
             }
         },
@@ -72,7 +97,6 @@ fun TodoListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Title at the top, with some spacing
             Text(
                 text = "My Todo List",
                 style = MaterialTheme.typography.headlineLarge,
@@ -83,7 +107,6 @@ fun TodoListScreen(
                     .wrapContentWidth(Alignment.CenterHorizontally)
             )
 
-            // LazyColumn starts below the title
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -96,7 +119,10 @@ fun TodoListScreen(
                         inSelectionMode = selectionMode,
                         onLongPress = { viewModel.toggleSelectionMode() },
                         onToggleSelected = { viewModel.toggleItemSelection(todo) },
-                        onToggleCompleted = { viewModel.toggleCompleted(todo) }
+                        onToggleCompleted = { viewModel.toggleCompleted(todo) },
+                        cancelDelete = {
+                            viewModel.selectionMode.value = false
+                            viewModel.clearSelection()}
                     )
                 }
             }
@@ -113,7 +139,8 @@ fun TodoItem(
     inSelectionMode: Boolean,
     onLongPress: () -> Unit,
     onToggleSelected: () -> Unit,
-    onToggleCompleted: () -> Unit
+    onToggleCompleted: () -> Unit,
+    cancelDelete: () -> Unit
 ) {
     val cardColor = if (todo.isCompleted) {
         Color.Gray.copy(alpha = 0.2f)  // Dimmed color when completed
@@ -133,8 +160,12 @@ fun TodoItem(
                 onLongClick = {
                     if (!inSelectionMode) {
                         onLongPress()
+                        onToggleSelected()
+                    } else {
+                        cancelDelete()
                     }
-                    onToggleSelected()
+
+
                 }
             ),
         colors = CardDefaults.cardColors(
@@ -148,7 +179,7 @@ fun TodoItem(
         ) {
             Row (
                 verticalAlignment = Alignment.CenterVertically,
-                ){
+            ){
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(end = 16.dp),

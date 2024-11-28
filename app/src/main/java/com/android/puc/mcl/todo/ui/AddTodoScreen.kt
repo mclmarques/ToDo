@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -27,8 +28,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.android.puc.mcl.todo.ui.theme.ToDoTheme
@@ -43,149 +44,178 @@ fun AddTodoScreen(
     onSave: (String, String, Date) -> Unit,
     onCancel: () -> Unit
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
+    ToDoTheme {
+        Surface {
+            var title by remember { mutableStateOf("") }
+            var description by remember { mutableStateOf("") }
+            var isTextFieldError by remember { mutableStateOf(false) }
 
-    val currentTime = Calendar.getInstance()
-    val timePickerState = rememberTimePickerState(
-        initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
-        initialMinute = currentTime.get(Calendar.MINUTE),
-        is24Hour = true,
-    )
-    var showTimePicker by remember { mutableStateOf(false) }
-    var selectedTime by remember { mutableStateOf(System.currentTimeMillis()) }
+            val currentTime = Calendar.getInstance()
+            val timePickerState = rememberTimePickerState(
+                initialHour = currentTime.get(Calendar.HOUR_OF_DAY),
+                initialMinute = currentTime.get(Calendar.MINUTE),
+                is24Hour = true,
+            )
+            var showTimePicker by remember { mutableStateOf(false) }
+            var selectedTime by remember { mutableStateOf(System.currentTimeMillis()) }
 
-    val calendar = Calendar.getInstance().apply { timeInMillis = selectedTime }
-    var showDatePicker by remember { mutableStateOf(false) }
-    val datePickerState = rememberDatePickerState(initialDisplayMode = DisplayMode.Picker)
+            val calendar = Calendar.getInstance().apply { timeInMillis = selectedTime }
+            var showDatePicker by remember { mutableStateOf(false) }
+            val datePickerState = rememberDatePickerState(initialDisplayMode = DisplayMode.Picker)
 
-
-    //Time dialog logic
-    if (showTimePicker) {
-        TimePickerDialog(
-            onDismiss = { showTimePicker = false },
-            onConfirm = {
-                calendar.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
-                calendar.set(Calendar.MINUTE, timePickerState.minute)
-                selectedTime = calendar.timeInMillis
-                showTimePicker = false
+            //Time dialog logic
+            if (showTimePicker) {
+                TimePickerDialog(
+                    onDismiss = { showTimePicker = false },
+                    onConfirm = {
+                        calendar.set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                        calendar.set(Calendar.MINUTE, timePickerState.minute)
+                        selectedTime = calendar.timeInMillis
+                        showTimePicker = false
+                    }
+                ) {
+                    TimePicker(state = timePickerState)
+                }
             }
-        ) {
-            TimePicker(state = timePickerState)
-        }
-    }
 
-    //Date dialog
-    if (showDatePicker) {
-        // DatePickerDialog component with custom colors and button behaviors
-        DatePickerDialog(
-            onDismissRequest = {
-                // Action when the dialog is dismissed without selecting a date
-                showDatePicker = false
-            },
-            confirmButton = {
-                // Confirm button with custom action and styling
-                TextButton(
-                    onClick = {
+            //Date dialog
+            if (showDatePicker) {
+                // DatePickerDialog component with custom colors and button behaviors
+                DatePickerDialog(
+                    onDismissRequest = {
+                        // Action when the dialog is dismissed without selecting a date
                         showDatePicker = false
-                        datePickerState.selectedDateMillis?.let { selectedDateMillis ->
-                            // Use the new function to update the calendar
-                            selectedDateMillis.updateCalendarDate(calendar)
-                            selectedTime = calendar.timeInMillis // Update selectedTime
+                    },
+                    confirmButton = {
+                        // Confirm button with custom action and styling
+                        TextButton(
+                            onClick = {
+                                showDatePicker = false
+                                datePickerState.selectedDateMillis?.let { selectedDateMillis ->
+                                    // Use the new function to update the calendar
+                                    selectedDateMillis.updateCalendarDate(calendar)
+                                    selectedTime = calendar.timeInMillis // Update selectedTime
+                                }
+                            }
+                        ) {
+                            Text("OK")
+                        }
+                    },
+                    dismissButton = {
+                        // Dismiss button to close the dialog without selecting a date
+                        TextButton(
+                            onClick = {
+                                showDatePicker = false
+                            }
+                        ) {
+                            Text("CANCEL")
                         }
                     }
                 ) {
-                    Text("OK")
-                }
-            },
-            dismissButton = {
-                // Dismiss button to close the dialog without selecting a date
-                TextButton(
-                    onClick = {
-                        showDatePicker = false
-                    }
-                ) {
-                    Text("CANCEL")
+                    // The actual DatePicker component within the dialog
+                    DatePicker(
+                        state = datePickerState,
+                    )
                 }
             }
-        ) {
-            // The actual DatePicker component within the dialog
-            DatePicker(
-                state = datePickerState,
-            )
-        }
-    }
 
-    ToDoTheme {
-        Column(
-            modifier = Modifier
-                .statusBarsPadding()
-                .padding(horizontal = 16.dp)
-                .fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Text(
-                text = "Add To-Do",
-                style = MaterialTheme.typography.headlineLarge.copy(
-                    fontWeight = FontWeight.Bold
-                ),
+
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 16.dp)
-            )
-            // Title input
-            TextField(
-                value = title,
-                onValueChange = { title = it },
-                label = { Text("Title") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Description input
-            TextField(
-                value = description,
-                onValueChange = { description = it },
-                label = { Text("Description") },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            // Date and Time Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp)
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Date Picker Field
-                OutlinedIconButton(
-                    onClick = {showDatePicker = true},
-                    shape = OutlinedTextFieldDefaults.shape,
+                Text(
+                    text = "Add To-Do",
+                    style = MaterialTheme.typography.headlineLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
                     modifier = Modifier
-                        .weight(1f)
                         .fillMaxWidth()
-                        .padding(end = 8.dp)
-                ) {
-                    Text(SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date(selectedTime)))
-                }
-                OutlinedIconButton(
-                    onClick = {showTimePicker = true},
-                    shape = OutlinedTextFieldDefaults.shape,
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth()
-                ) {
-                    Text(SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(selectedTime)))
-                }
-            }
+                        .padding(top = 16.dp)
+                )
+                // Title input
+                TextField(
+                    value = title,
+                    onValueChange = {
+                        title = it},
+                    label = { Text("Title") },
+                    isError = isTextFieldError,
+                    supportingText = {
+                        // Show error message below the TextField if it's empty
+                        if (isTextFieldError) {
+                            Text(
+                                text = "This field is mandatory",
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
-            // Save and Cancel Buttons
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Button(onClick = onCancel) { Text("Cancel") }
-                Button(onClick = { onSave(title, description, Date(selectedTime)) }) { Text("Save") }
+                // Description input
+                TextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Date and Time Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    // Date Picker Field
+                    OutlinedIconButton(
+                        onClick = { showDatePicker = true },
+                        shape = OutlinedTextFieldDefaults.shape,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .padding(end = 8.dp)
+                    ) {
+                        Text(
+                            SimpleDateFormat(
+                                "MMM dd, yyyy",
+                                Locale.getDefault()
+                            ).format(Date(selectedTime))
+                        )
+                    }
+                    OutlinedIconButton(
+                        onClick = { showTimePicker = true },
+                        shape = OutlinedTextFieldDefaults.shape,
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                    ) {
+                        Text(
+                            SimpleDateFormat(
+                                "hh:mm a",
+                                Locale.getDefault()
+                            ).format(Date(selectedTime))
+                        )
+                    }
+                }
+
+                // Save and Cancel Buttons
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(onClick = onCancel) { Text("Cancel") }
+                    Button(onClick = {
+                        if(title.isNotEmpty() ) onSave(title, description, Date(selectedTime))
+                        else isTextFieldError = true
+
+
+                    }) { Text("Save") }
+                }
             }
         }
-
     }
 }
 

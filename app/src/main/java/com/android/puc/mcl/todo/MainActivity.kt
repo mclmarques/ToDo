@@ -5,14 +5,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -42,11 +37,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun TodoApp(navController: NavHostController = rememberNavController(), viewModel: UniversalViewModel) {
     NavHost(navController, startDestination = "todoList") {
-        composable("todoList") {
+        composable(
+            "todoList",
+            enterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(500)) },
+            exitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.Start, tween(500)) },
+            popEnterTransition = { slideIntoContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(500)) },
+            popExitTransition = { slideOutOfContainer(AnimatedContentTransitionScope.SlideDirection.End, tween(500)) } ) {
             TodoListScreen(
-                todos = viewModel.todos.collectAsState().value,
                 onAddTodoClick = { navController.navigate("addTodo") },
-                viewModel = viewModel
+                viewModel = viewModel,
+                //onBackGestureDefault = {  }
             )
         }
         composable("addTodo") {
@@ -60,3 +60,5 @@ fun TodoApp(navController: NavHostController = rememberNavController(), viewMode
         }
     }
 }
+
+
